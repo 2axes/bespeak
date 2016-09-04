@@ -1,0 +1,11 @@
+# Backup Files #
+################
+*.pyc
+*.bak
+*.save
+*.swp
+
+# Database #
+############
+db.sqlite3
+migrations/

@@ -1,0 +1,337 @@
+{% extends "layout.html" %}
+{% load issue_extras %}
+
+{% block content_body %}
+<script src="{{STATIC_URL}}js/utils_lib.js"></script>
+<script src="{{STATIC_URL}}js/request_lib.js"></script>
+<script src="{{STATIC_URL}}js/triage_op.js"></script>
+
+<script>
+function SendRequest(){
+    parentNode = $('#divIssues');
+    RequestLib.Request(
+        "forms/IssueRequestCommand/",
+        parentNode,
+        parentNode.children().first(),
+        $('#inTitle').val(),
+        $('#inNick').val(),
+        $('#inEmail').val(),
+        $('#inType').val(),
+        $('#inMessage').val()
+		);
+    UtilsLib.TogglePopup('#requestPopup');
+    $('#inTitle').val(''),
+    $('#inType').val(''),
+    $('#inMessage').val('')
+}
+
+function AddComment(){
+    issueId = UtilsLib.LastOpenedPopupParam;
+    parentNode = '#divIssueContent_' + issueId;
+    RequestLib.Comment(
+        "forms/CommentCommand/",
+        issueId,
+        $(parentNode),
+        $('div[id^="divComment"]').first(),
+        $('#inNick_Comment').val(),
+        $('#inEmail_Comment').val(),
+        $('#inMessage_Comment').val()
+           );
+    UtilsLib.TogglePopup('#addCommentPopup');
+    $('#inMessage_Comment').val('')
+}
+
+function ConfirmVote(){
+    issueId = UtilsLib.LastOpenedPopupParam;
+    RequestLib.Vote(
+        "forms/VoteCommand/",
+        issueId,
+        $('#inNick_Vote').val(),
+        $('#inEmail_Vote').val()
+		);
+    UtilsLib.TogglePopup('#confirmVotePopup');
+    UtilsLib.ShowSuccess('Check your e-mail box to confirm the vote!');
+}
+
+$.ajaxSetup({
+    beforeSend: function(xhr, settings) {
+        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+            csrf = UtilsLib.getCookie('csrftoken');
+            if (csrf.length == 0)
+                csrf = '{{ csrf_token  }}'
+            xhr.setRequestHeader("X-CSRFToken", csrf);           
+        }
+    }
+});
+
+$(document).ready(function(){
+    $('#frmCreateRequest').on('submit', function(event){
+        event.preventDefault();
+        SendRequest();
+    });
+    $('#frmAddComment').on('submit', function(event){
+        event.preventDefault();
+        AddComment();
+    });
+    $('#frmConfirmVote').on('submit', function(event){
+        event.preventDefault();
+        ConfirmVote();
+    });
+    $('#frmUpdateRequest').on('submit', function(event){
+        event.preventDefault();
+        issueObjId = $('#inUpdateIssueObjId').attr('value');
+        issueId = $('#inUpdateIssueId').attr('value');
+        issueTitle = document.getElementById("inUpdateTitle").value;
+        issueDescription = document.getElementById("inUpdateMessage").value;
+        TriageOp.IssueEdit(issueObjId, issueId, issueTitle, issueDescription);
+    });
+    $('#frmUpdateComment').on('submit', function(event){
+        event.preventDefault();
+        commentId = $("#inUpdateCommentId").attr("value");
+        commentMessage = document.getElementById("inUpdateComment").value;
+        objId = "divCommentMessage_"+commentId ;
+        TriageOp.CommentEdit(objId, commentId, commentMessage);
+    });
+});
+
+</script>
+
+<button type="button" class="btn btn-default btn-lg center-block" data-toggle="modal" onclick="UtilsLib.TogglePopup('#requestPopup')">Create Request</button>
+<div id="requestPopup" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        <form id="frmCreateRequest" enctype="multipart/form-data" method="post" action=".">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Create Request</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row form-group">
+                    <label class="col-sm-2">Title</label>
+                    <input id="inTitle" class="col-sm-10 form-control width70 margin-lr-2" type="text" maxlength="256"/>
+                </div>
+                <div class="row form-group">
+                    <label class="col-sm-2">Nickname</label>
+                    <input id="inNick" class="col-sm-10 form-control width70 margin-lr-2" type="text" maxlength="64"/>
+                </div>
+                <div class="row form-group">
+                    <label class="col-sm-2">E-mail</label>
+                    <input id="inEmail" class="col-sm-10 form-control width70 margin-lr-2" type="text" maxlength="128"/>
+                </div>
+                <div class="row form-group">
+                    <label class="col-sm-2">Type</label>
+                    <div class="dropdown">
+                        <input id="inType" class="col-sm-10 form-control width70 margin-lr-2" data-toggle="dropdown" autocomplete="off" aria-haspopup="true" aria-expanded="false" type="text" maxlength="32"/>
+                        <ul class="dropdown-menu pull-right" aria-labelledby="inType">
+                            {% for itype in iTypeList %}
+                            <li><a onclick="$('#inType').val('{{ itype.name }}')">{{ itype.name }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label class="col-sm-2">Message</label>
+                    <textarea id="inMessage" class="col-sm-10 form-control width70 margin-lr-2" type="text" maxlength="4096"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="row margin-lr-2">
+                    <input id="btnRequestSubmit" type="submit" class="btn btn-primary col-sm-push-4 col-sm-2" value="Send"/>
+                    <button type="button" class="btn btn-default col-sm-push-4 col-sm-2" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </form>
+        </div>
+    </div>
+</div>
+<div id="addCommentPopup" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        <form id="frmAddComment" enctype="multipart/form-data" method="post" action=".">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Add Comment</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row form-group">
+                    <label class="col-sm-2">Nick</label>
+                    <input id="inNick_Comment" class="col-sm-10 form-control width70 margin-lr-2" type="text" maxlength="128"/>
+                </div>
+                <div class="row form-group">
+                    <label class="col-sm-2">E-mail</label>
+                    <input id="inEmail_Comment" class="col-sm-10 form-control width70 margin-lr-2" type="text" maxlength="128"/>
+                </div>
+                <div class="row form-group">
+                    <label class="col-sm-2">Message</label>
+                    <textarea id="inMessage_Comment" class="col-sm-10 form-control width70 margin-lr-2" type="text" maxlength="4096"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="row margin-lr-2">
+                    <input id="btnCommentSubmit" type="submit" class="btn btn-primary col-sm-push-4 col-sm-2" value="Send"/>
+                    <button type="button" class="btn btn-default col-sm-push-4 col-sm-2" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </form>
+        </div>
+    </div>
+</div>
+<div id="confirmVotePopup" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        <form id="frmConfirmVote" enctype="multipart/form-data" method="post" action=".">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Confirm Vote</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row form-group">
+                    <label class="col-sm-2">Nick</label>
+                    <input id="inNick_Vote" class="col-sm-10 form-control width70 margin-lr-2" type="text" maxlength="128"/>
+                </div>
+                <div class="row form-group">
+                    <label class="col-sm-2">E-mail</label>
+                    <input id="inEmail_Vote" class="col-sm-10 form-control width70 margin-lr-2" type="text" maxlength="128"/>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="row margin-lr-2">
+                    <input id="btnCommentSubmit" type="submit" class="btn btn-primary col-sm-push-4 col-sm-2" value="Vote +1"/>
+                    <button type="button" class="btn btn-default col-sm-push-4 col-sm-2" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </form>
+        </div>
+    </div>
+</div>
+
+{% if user.is_authenticated %}
+<!-- Popup for update contents -->
+
+<div id="updateIssuePopup" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        <form id="frmUpdateRequest" enctype="multipart/form-data" method="post" action=".">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Update Item</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row form-group">
+                    <label class="col-sm-2">Title</label>
+                    <input id="inUpdateTitle" class="col-sm-10 form-control width70 margin-lr-2" type="text" maxlength="256"/>
+                </div>
+                <div class="row form-group">
+                    <label class="col-sm-2">Message</label>
+                    <textarea id="inUpdateMessage" class="col-sm-10 form-control width70 margin-lr-2" type="text" maxlength="4096"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="row margin-lr-2">
+                    <input id="btnUpdateRequestSubmit" type="submit" class="btn btn-primary col-sm-push-4 col-sm-2" value="Send"/>
+                    <button type="button" class="btn btn-default col-sm-push-4 col-sm-2" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+            <input id="inUpdateIssueId" type="hidden"/>
+            <input id="inUpdateIssueObjId" type="hidden"/>
+        </form>
+        </div>
+    </div>
+</div>
+<div id="updateCommentPopup" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        <form id="frmUpdateComment" enctype="multipart/form-data" method="post" action=".">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Update Comment</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row form-group">
+                    <label class="col-sm-2">Message</label>
+                    <textarea id="inUpdateComment" class="col-sm-10 form-control width70 margin-lr-2" type="text" maxlength="4096"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="row margin-lr-2">
+                    <input id="btnUpdateCommentSubmit" type="submit" class="btn btn-primary col-sm-push-4 col-sm-2" value="Send"/>
+                    <button type="button" class="btn btn-default col-sm-push-4 col-sm-2" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+            <input id="inUpdateCommentId" type="hidden"/>
+            <input id="inUpdateCommentObjId" type="hidden"/>
+        </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<hr/>
+<div id="divIssues">
+{% for issue in issues %}
+    <div id="divIssue_{{ issue.id }}" class="row hover-div margin-tb-2">
+        <div class="col-sm-2">
+            <div class="row">
+                <div class="col-md-12 center-block text-center">
+                    <h5><small class="text-center">votes</small></h5>
+                    <button id="btnVote" class="btn btn-default btn-lg center-block request-votebutton" 
+                            onclick="UtilsLib.TogglePopup('#confirmVotePopup',{{ issue.id  }})">{{ issue.votesCount }}</button>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12 margin-tb-1">
+                    <button id="btnComment" class="btn btn-default btn-sm center-block" 
+                            onclick="UtilsLib.TogglePopup('#addCommentPopup',{{ issue.id }})">Comment</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-10">
+            <div id="divTitle" class="row">
+                <div id="divIssueTitle_{{ issue.id }}" class="col-sm-12 request-title">
+                    {{ issue.title }}
+                </div>
+            </div>
+            <div class="row">
+                <div id="divIssueDate" class="col-sm-4">
+                    {{ issue.date|date:'Y-m-d f a' }} UTC
+				</div>
+                <div id="divIssueType" class="col-sm-3">
+                    {{ issue.issueType }}
+                </div>
+                <div id="divIssueNick" class="col-sm-5">
+                    {{ issue.nick }}
+                </div>
+            </div>
+            <div class="row">
+                <div id="divIssueContent_{{ issue.id }}" class="row margin-lr-2">
+                    <div id="divIssueDescription_{{ issue.id }}" class="col-sm-12 margin-tb-1 request-message">
+                        {{ issue.description }}
+                    </div>
+                    <div id="divIssueComments">
+                    {% for comment in issue.comments.all %}
+                        <div id="divComment{{ comment.id }}" class="row margin-tb-1">
+                            <div class="col-sm-3 request-comment-info">
+                                <div id="divCommentDate" class="row">
+                                    {{ comment.date|date:'Y-m-d f a' }} UTC
+                                </div>
+                                <div id="divCommentNick" class="row">
+                                   {{ comment.nick }}
+                                </div>
+                            </div>
+                            <div class="col-sm-9 request-comment">
+                               <div id="divCommentMessage_{{ comment.id }}">
+                                   {{ comment.text }}
+                               </div>
+                               <div class="request-comment">{% show_comment_controls user comment %}</div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% show_issue_controls user issue %}
+        </div>
+    </div>
+{% endfor %}
+</div>
+{% endblock %}

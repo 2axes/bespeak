@@ -1,0 +1,63 @@
+.margin-lr-1{
+    margin-right:10px;
+    margin-left:10px;
+}
+
+.margin-lr-2{
+    margin-right:20px;
+    margin-left:20px;
+}
+
+.margin-tb-1{
+    margin-top:10px;
+    margin-bottom:10px;
+}
+
+.margin-tb-2{
+    margin-top:20px;
+    margin-bottom:20px;
+}
+
+.width70{
+    width:70%;
+}
+
+.hover-div{
+    background: #fff;
+}
+
+.hover-div:hover{
+    background: #f5f5f5;
+}
+
+.request-title{
+    font-weight: bold;
+    color: #636363;
+}
+
+.request-votebutton{
+    font-weight: bold;
+    color: #636363;
+}
+
+.request-comment{
+    font-size: 1.1rem;
+    font-family: "Lucida Sans", sans-serif;
+    text-align: justify;
+    text-justify: inter-work;
+    color: #0C3C26;
+}
+
+.request-message{
+    font-size: 1.4rem;
+    font-family: "Lucida Sans", sans-serif;
+    text-align: justify;
+    text-justify: inter-work;
+    color: #000;
+}
+
+.request-comment-info{
+    font-size: 1.1rem;
+    font-family: "Lucida Sans", sans-serif;
+    color: #000;
+}

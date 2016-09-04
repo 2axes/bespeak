@@ -1,0 +1,8 @@
+Hi #Nickname#,
+
+Your request was stored and will be processed
+
+#Header#
+
+Thank you,
+#RequestForumName#

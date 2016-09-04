@@ -1,0 +1,10 @@
+Hi #Nickname#,
+
+Your comment was stored and will be processed
+
+#Header#
+
+#Description#
+
+Thank you,
+#RequestForumName#

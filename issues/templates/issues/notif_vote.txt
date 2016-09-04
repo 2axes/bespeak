@@ -1,0 +1,7 @@
+Hi #Nickname#,
+
+You have voted on '#IssueName#'. To confirm the vote, please click on the link:
+#LinkConfirmation#
+
+Thank you,
+#RequestForumName#

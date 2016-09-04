@@ -1,0 +1,9 @@
+Hi #Nickname#,
+
+You have sent a request at #RequestForumUri#, and we didn't find your registry with #Nickname# (#UserEmail#)
+
+Please, confirm this information through the link:
+#LinkConfirmation#
+
+Thank you,
+#RequestForumName#

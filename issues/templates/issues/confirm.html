@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+{% block content_body %}
+    <div class="row">
+        <div class="alert alert-success">
+{% if confirmation_for = 'Vote' %}
+            Vote confirmed!
+{% else %}
+            Account confirmed!
+{% endif %}
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% if user.is_authenticated %}
+<div class="row" id="barIssueTriage">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="dropdown btn">
+                <button id="ddVisibility{{ issueId }}" class="btn btn-sm dropdown-toggle" type="button" data-toggle="dropdown">Visibility: {{ issueVisibility }} <span class="caret"></span></button>
+                <ul class="dropdown-menu">
+                    <li><a id="lblPublicVisibility" href="javascript:TriageOp.IssueVisibility('ddVisibility{{ issueId }}', {{ issueId }},'Public', 'lblPublicVisibility')">Public</a></li>
+                    <li><a id="lblPublicVisibility" href="javascript:TriageOp.IssueVisibility('ddVisibility{{ issueId }}', {{ issueId }},'Private', 'lblPublicVisibility')">Private</a></li>
+                </ul>
+            </div>
+
+            <div class="dropdown btn">
+                <button id="ddStatus{{ issueId }}" class="btn btn-sm dropdown dropdown-toggle" type="button" data-toggle="dropdown">Status: {{ issueStatus }} <span class="caret"></span></button>
+                <ul class="dropdown-menu">
+                    {% for ist in iStatusList %}
+                    <li><a href="javascript:TriageOp.IssueStatus('ddStatus{{ issueId }}', {{ issueId }},'{{ ist.name }}')">{{ ist.name }}</a></li>
+                    {% endfor %}
+		</ul>
+            </div>
+
+            <div class="btn">
+                <button id="btnIssueEdit{{ issueId }}" class="btn btn-sm" type="button" onclick="TriageOp.IssueEditPopup('{{ issueDivObjId }}', {{ issueId }}, '{{ issueTitle }}', $('#divIssueDescription_{{ issueId }}').text().trim() )">Edit</button>
+            </div>
+            <div class="btn">
+                <button id="btnIssueDelete{{ issueId }}" class="btn btn-sm" type="button" onclick="TriageOp.IssueDelete('{{ issueDivObjId }}', {{ issueId }})">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
