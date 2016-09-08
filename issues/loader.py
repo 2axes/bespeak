@@ -18,6 +18,7 @@ class Defs(object):
     FORUM_NAME_id = 11
     ROOT_PATH_id = 12
     DEFAULT_VISIBILITY = 13
+    DEFAULT_ITEMS_PER_PAGE = 14
 
 
 class Loader(object):
@@ -84,4 +85,6 @@ class Loader(object):
             s.setup(Defs.ROOT_PATH_id,'Installed Path','./issues/')
             s.save()
             s.setup(Defs.DEFAULT_VISIBILITY, 'Default Visibilty', 'True')
+            s.save()
+            s.setup(Defs.DEFAULT_ITEMS_PER_PAGE, 'Default Items per Page', 25)
             s.save()

@@ -3,6 +3,7 @@ from urllib import parse
 from django.shortcuts import get_object_or_404, render
 from django.views import generic
 from django.views.decorators.csrf import csrf_exempt
+from django.core.paginator import Paginator
 from .models import Issue
 from .models import Settings
 from .models import Nickname
@@ -26,13 +27,32 @@ class IssuesListView(generic.TemplateView):
 
 class IndexView(generic.ListView):
     model = Issue
-    paginate_by = 100
     template_name = 'issues/index.html'
-    context_object_name = 'issues'
 
     def get_context_data(self, **kwargs):
+        ipp = Settings.objects.get(id=Defs.DEFAULT_ITEMS_PER_PAGE).value
         context = super(IndexView,self).get_context_data(**kwargs)
         context['iTypeList'] = IssueType.objects.all()
+        page = self.request.GET.get('page')
+        if page == None:
+            page = 1
+
+        paginator = None
+        if self.request.GET.get('order') == 'votes':
+            context['order'] = 'votes'
+            paginator = Paginator(Issue.objects.order_by('-votesCount'), ipp)
+        else:
+            context['order'] = 'date'
+            paginator = Paginator(Issue.objects.order_by('-date'), ipp)
+
+        context['paginator'] = paginator
+        try:
+            context['issues'] = paginator.page(page)
+        except:
+            page = 1
+            context['issues'] = paginator.page(page)
+
+        context['current_page'] = int(page)
         return context
 
 
@@ -40,7 +60,6 @@ class ConfirmView(generic.TemplateView):
     template_name = 'issues/confirm.html'
 
     def get_context_data(self, **kwargs):
-        print('!x1')
         context = super(ConfirmView,self).get_context_data(**kwargs)
         secret = Settings.objects.get(id=Defs.TOKEN_CRYPT_SECRET_id).value
         tkstr = urllib.parse.unquote(self.request.GET.get('token'))
@@ -64,7 +83,6 @@ class VoteConfirmView(generic.TemplateView):
     template_name = 'issues/confirm.html'
 
     def get_context_data(self, **kwargs):
-        print('!x2')
         context = super(VoteConfirmView,self).get_context_data(**kwargs)
         secret = Settings.objects.get(id=Defs.TOKEN_CRYPT_SECRET_id).value
         tkstr = urllib.parse.unquote(self.request.GET.get('token'))

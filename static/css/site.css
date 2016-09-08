@@ -61,3 +61,10 @@
     font-family: "Lucida Sans", sans-serif;
     color: #000;
 }
+
+.sort-panel{
+    font-size: 1.1rem;
+    font-family: "Lucida Sans", sans-serif;
+    padding: 0px;
+    text-align: right;
+}
